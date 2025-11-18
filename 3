@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Update and upgrade the system
+echo "Updating package list..."
+apt update -y
+echo "Upgrading packages..."
+apt upgrade -y
+
+# Install XRDP
+echo "Installing XRDP..."
+apt install xrdp -y
+
+echo "All tasks completed successfully!"
