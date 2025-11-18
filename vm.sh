@@ -2,20 +2,20 @@
 set -euo pipefail
 
 # =============================
-# Enhanced Multi-VM Manager
+# Enhanced Multi-VM Manager (Software Emulation Mode)
 # =============================
 
-# Function to display header
+# Function to display header (Changed to ISAM)
 display_header() {
     clear
     cat << "EOF"
 ========================================================================
-  _    _  ____  _____ _____ _   _  _____ ____   ______     ________
- | |  | |/ __ \|  __ \_   _| \ | |/ ____|  _ \ / __ \ \   / /___  /
- | |__| | |  | | |__) || | |  \| | |  __| |_) | |  | \ \_/ /   / / 
- |  __  | |  | |  ___/ | | |   \ | | |_ |  _ <| |  | |\   /   / /  
- | |  | | |__| | |    _| |_| |\  | |__| | |_) | |__| | | |   / /__ 
- |_|  |_|\____/|_|   |_____|_| \_|\_____|____/ \____/  |_|  /_____|
+  _____  _____   _____  __  __
+ |  __ \| ____| |  ___|/ / / / 
+ | |  | |/ __ \| |__ / / / /  
+ | |  | | / _` |  __// / / /   
+ | |__| | \__/\ | |  / /_/ /  
+ |_____/ \____/|_|  \____/  
                                                                   
                     POWERED BY HOPINGBOYZ
 ========================================================================
@@ -80,7 +80,7 @@ validate_input() {
 
 # Function to check dependencies
 check_dependencies() {
-    local deps=("qemu-system-x86_64" "wget" "cloud-localds" "qemu-img")
+    local deps=("qemu-system-x86_64" "wget" "cloud-localds" "qemu-img" "sudo" "openssl")
     local missing_deps=()
     
     for dep in "${deps[@]}"; do
@@ -91,7 +91,7 @@ check_dependencies() {
     
     if [ ${#missing_deps[@]} -ne 0 ]; then
         print_status "ERROR" "Missing dependencies: ${missing_deps[*]}"
-        print_status "INFO" "On Ubuntu/Debian, try: sudo apt install qemu-system cloud-image-utils wget"
+        print_status "INFO" "On Ubuntu/Debian, try: sudo apt install qemu-system cloud-image-utils wget openssl"
         exit 1
     fi
 }
@@ -352,6 +352,7 @@ start_vm() {
         print_status "INFO" "Starting VM: $vm_name"
         print_status "INFO" "SSH: ssh -p $SSH_PORT $USERNAME@localhost"
         print_status "INFO" "Password: $PASSWORD"
+        print_status "WARN" "NOTE: KVM is disabled. VM will run using software emulation and be slower." # WARNING ADDED
         
         # Check if image file exists
         if [[ ! -f "$IMG_FILE" ]]; then
@@ -365,13 +366,13 @@ start_vm() {
             setup_vm_image
         fi
         
-        # Base QEMU command
+        # Base QEMU command (KVM flags removed/modified)
         local qemu_cmd=(
             qemu-system-x86_64
-            -enable-kvm
+            #-enable-kvm  <-- REMOVED
             -m "$MEMORY"
             -smp "$CPUS"
-            -cpu host
+            -cpu qemu64 # Use a generic CPU model for pure software emulation
             -drive "file=$IMG_FILE,format=qcow2,if=virtio"
             -drive "file=$SEED_FILE,format=raw,if=virtio"
             -boot order=c
@@ -396,7 +397,7 @@ start_vm() {
             qemu_cmd+=(-nographic -serial mon:stdio)
         fi
 
-        # Add performance enhancements
+        # Add performance enhancements (kept virtio devices which work in emulation too)
         qemu_cmd+=(
             -device virtio-balloon-pci
             -object rng-random,filename=/dev/urandom,id=rng0
