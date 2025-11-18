@@ -1,21 +1,26 @@
 #!/bin/bash
 
-# Install slim
+# Install Slim
 echo "Installing Slim..."
-sudo apt install slim
+apt install slim -y
 echo "Starting Slim..."
 sudo service slim start
 
-# Install Docker Compose
-echo "Installing Docker Compose..."
-apt install docker-compose -y
+# Install Kde Plasma
+echo "Installing Kde Plasma. GUI..."
+apt install kde-plasma-desktop -y
 
-# Install Neofetch
-echo "Installing Neofetch..."
-apt install neofetch -y
+# Install Firefox
+echo "Installing Firefox..."
+snap install firefox -y
 
-# Run Neofetch to display system information
-echo "Running Neofetch..."
-neofetch
+# Install Spectacle
+echo "Installing Spectacle"
+apt install kde-spectacle -y
+
+# Restart
+echo "Rebooting..."
+reboot
+
 
 echo "All tasks completed successfully!"
